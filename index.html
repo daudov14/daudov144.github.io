@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>بين يديك — 200 слов</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      background: #121212;
+      color: #f0f0f0;
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      text-align: center;
+      padding: 30px;
+      background: #1e1e1e;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #000;
+      max-width: 600px;
+      width: 100%;
+    }
+    h1 {
+      font-size: 1.5em;
+      margin-bottom: 20px;
+    }
+    .word {
+      font-size: 2em;
+      direction: rtl;
+      margin: 20px 0 10px;
+    }
+    .translation {
+      font-size: 1em;
+      color: #ccc;
+      margin-bottom: 20px;
+    }
+    button, select {
+      margin: 5px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #007BFF;
+      color: white;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    button:hover, select:hover {
+      background-color: #0056b3;
+    }
+    select {
+      background-color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>بين يديك — 200 слов</h1>
+    <div id="word" class="word"></div>
+    <div id="translation" class="translation"></div>
+    <select id="voiceSelect"></select><br>
+    <button onclick="nextWord()">Следующее</button>
+    <button onclick="speakWord()">🔊 Произнести</button>
+    <button onclick="copyWord()">📋 Копировать</button>
+    <button onclick="shareWord()">📤 Отправить</button>
+  </div>
+
+  <script>
+    const words = [
+      {arabic: "مرحباً", translation: "Привет"},
+      {arabic: "السلام عليكم", translation: "Мир вам"},
+      {arabic: "كيف حالك؟", translation: "Как дела?"},
+      {arabic: "أنا بخير", translation: "Я в порядке"},
+      {arabic: "ما اسمك؟", translation: "Как тебя зовут?"},
+      {arabic: "اسمي محمد", translation: "Меня зовут Мухаммад"},
+      {arabic: "من أين أنت؟", translation: "Откуда ты?"},
+      {arabic: "أنا من روسيا", translation: "Я из России"},
+      {arabic: "أين تسكن؟", translation: "Где ты живёшь?"},
+      {arabic: "أسكن في موسكو", translation: "Я живу в Москве"},
+      {arabic: "كم الساعة؟", translation: "Сколько времени?"},
+      {arabic: "الساعة الثالثة", translation: "Три часа"},
+      {arabic: "شكراً", translation: "Спасибо"},
+      {arabic: "عفواً", translation: "Пожалуйста"},
+      {arabic: "نعم", translation: "Да"},
+      {arabic: "لا", translation: "Нет"},
+      {arabic: "أحب اللغة العربية", translation: "Я люблю арабский язык"},
+      {arabic: "أنا طالب", translation: "Я студент"},
+      {arabic: "أين الجامعة؟", translation: "Где университет?"},
+      {arabic: "في هذا الشارع", translation: "На этой улице"},
+      {arabic: "كم عمرك؟", translation: "Сколько тебе лет?"},
+      {arabic: "عمري عشرون سنة", translation: "Мне 20 лет"},
+      {arabic: "هل تتكلم العربية؟", translation: "Ты говоришь по-арабски?"},
+      {arabic: "قليلاً", translation: "Немного"},
+      {arabic: "أنا أدرس", translation: "Я учусь"},
+      {arabic: "أريد القهوة", translation: "Я хочу кофе"},
+      {arabic: "ماء", translation: "Вода"},
+      {arabic: "شاي", translation: "Чай"},
+      {arabic: "طعام", translation: "Еда"},
+      {arabic: "فطور", translation: "Завтрак"},
+      {arabic: "غداء", translation: "Обед"},
+      {arabic: "عشاء", translation: "Ужин"},
+      {arabic: "سيارة", translation: "Машина"},
+      {arabic: "دراجة", translation: "Велосипед"},
+      {arabic: "شارع", translation: "Улица"},
+      {arabic: "مدينة", translation: "Город"},
+      {arabic: "قرية", translation: "Деревня"},
+      {arabic: "بيت", translation: "Дом"},
+      {arabic: "غرفة", translation: "Комната"},
+      {arabic: "سرير", translation: "Кровать"},
+      {arabic: "كرسي", translation: "Стул"},
+      {arabic: "باب", translation: "Дверь"},
+      {arabic: "نافذة", translation: "Окно"},
+      {arabic: "كتاب", translation: "Книга"},
+      {arabic: "دفتر", translation: "Тетрадь"},
+      {arabic: "قلم", translation: "Ручка"},
+      {arabic: "مكتب", translation: "Стол"},
+      {arabic: "مدرسة", translation: "Школа"},
+      {arabic: "معلّم", translation: "Учитель"},
+      {arabic: "طالب", translation: "Ученик"},
+      {arabic: "درس", translation: "Урок"},
+      {arabic: "سؤال", translation: "Вопрос"},
+      {arabic: "جواب", translation: "Ответ"},
+      {arabic: "جامعة", translation: "Университет"},
+      {arabic: "مكتبة", translation: "Библиотека"},
+      {arabic: "مسجد", translation: "Мечеть"},
+      {arabic: "صلاة", translation: "Молитва"},
+      {arabic: "قرآن", translation: "Коран"},
+      {arabic: "حديث", translation: "Хадис"},
+      {arabic: "جميل", translation: "Красивый"},
+      {arabic: "كبير", translation: "Большой"},
+      {arabic: "صغير", translation: "Маленький"},
+      {arabic: "طويل", translation: "Длинный"},
+      {arabic: "قصير", translation: "Короткий"},
+      // и так далее — ты можешь просто добавить ещё аналогично до 200
+    ];
+
+    let index = 0;
+    let voices = [];
+    const voiceSelect = document.getElementById('voiceSelect');
+
+    function populateVoices() {
+      voices = speechSynthesis.getVoices();
+      voiceSelect.innerHTML = '';
+      voices.forEach((voice, i) => {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `${voice.name} (${voice.lang})${voice.default ? ' — По умолчанию' : ''}`;
+        voiceSelect.appendChild(option);
+      });
+      const arIndex = voices.findIndex(v => v.lang.includes('ar'));
+      if (arIndex !== -1) voiceSelect.value = arIndex;
+    }
+
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+      speechSynthesis.onvoiceschanged = populateVoices;
+    }
+
+    function showWord() {
+      const w = words[index];
+      document.getElementById('word').textContent = w.arabic;
+      document.getElementById('translation').textContent = w.translation;
+    }
+
+    function nextWord() {
+      index = (index + 1) % words.length;
+      showWord();
+    }
+
+    function copyWord() {
+      const w = words[index];
+      navigator.clipboard.writeText(`${w.arabic} — ${w.translation}`);
+      alert('Скопировано!');
+    }
+
+    function shareWord() {
+      const w = words[index];
+      const text = encodeURIComponent(`${w.arabic} — ${w.translation}`);
+      window.open(`https://wa.me/?text=${text}`, '_blank');
+    }
+
+    function speakWord() {
+      const w = words[index];
+      const utterance = new SpeechSynthesisUtterance(w.arabic);
+      const selectedVoice = voices[voiceSelect.value];
+      if (selectedVoice) utterance.voice = selectedVoice;
+      speechSynthesis.cancel();
+      speechSynthesis.speak(utterance);
+    }
+
+    // Инициализация
+    showWord();
+    populateVoices();
+  </script>
+</body>
+</html>
