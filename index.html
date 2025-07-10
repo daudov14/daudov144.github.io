@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Игра с арабскими словами</title>
+<style>
+  .visible { display: block; }
+  .hidden { display: none; }
+
+  body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+  }
+
+  section {
+    margin-bottom: 20px;
+  }
+
+  button {
+    margin: 5px 5px 5px 0;
+    padding: 8px 12px;
+    cursor: pointer;
+  }
+
+  .option-btn {
+    margin: 5px;
+    padding: 10px 15px;
+    font-size: 1rem;
+  }
+
+  .option-btn.correct {
+    background-color: #4caf50;
+    color: white;
+  }
+
+  .option-btn.wrong {
+    background-color: #f44336;
+    color: white;
+  }
+
+  .word-item {
+    padding: 5px;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+  }
+
+  .word-item:hover, .word-item:focus {
+    background-color: #f0f0f0;
+    outline: none;
+  }
+</style>
+</head>
+<body>
+<main>
+  <!-- Секция входа -->
+  <section id="loginSection" class="visible">
+    <h2>Вход / Регистрация</h2>
+    <input id="usernameInput" type="text" placeholder="Логин" />
+    <input id="passwordInput" type="password" placeholder="Пароль" />
+    <button id="loginBtn">Войти / Зарегистрироваться</button>
+    <div id="loginMessage" style="color: red; margin-top: 10px;"></div>
+  </section>
+
+  <!-- Главное меню -->
+  <section id="menu" class="hidden">
+    <h2>Меню</h2>
+    <button id="btnWords">Все слова</button>
+    <button id="btnGame">Начать игру</button>
+
+    <h3>Рекорды игроков</h3>
+    <table style="width: 100%; font-size: 12px;">
+      <thead><tr><th>Игрок</th><th>Очки</th></tr></thead>
+      <tbody id="leaderboardBody"></tbody>
+    </table>
+  </section>
+
+  <!-- Список слов -->
+  <section id="wordsSection" class="hidden" aria-live="polite">
+    <h2>Слова</h2>
+    <div id="wordsList" role="list" style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 5px;"></div>
+    <div>
+      <span id="translation" style="font-weight: bold; margin-right: 10px;"></span>
+      <button id="playAudio" style="display:none;">🔊 Произнести</button>
+    </div>
+    <button id="backFromWords">Назад</button>
+  </section>
+
+  <!-- Игра -->
+  <section id="gameSection" class="hidden" aria-live="assertive">
+    <h2>Игра</h2>
+    <div>Арабское слово: <span id="gameWord" style="font-size: 2rem;"></span></div>
+    <div id="gameOptions" style="margin-top: 15px;"></div>
+    <div style="margin-top: 15px;">
+      <span id="score">Очки: 0</span> | <span id="bestScore">Лучший: 0</span> | Время: <span id="timer">15</span> сек
+    </div>
+    <button id="backFromGame" style="margin-top: 10px;">В меню</button>
+  </section>
+</main>
+
+<script>
+// ==== Данные слов ====
+const words = [
+  { arabic: "كتاب", translation: "Книга" },
+  { arabic: "قلم", translation: "Ручка" },
+  { arabic: "مدرسة", translation: "Школа" },
+  { arabic: "باب", translation: "Дверь" },
+  { arabic: "شمس", translation: "Солнце" },
+  { arabic: "قمر", translation: "Луна" },
+  { arabic: "بيت", translation: "Дом" },
+  { arabic: "ماء", translation: "Вода" }
+];
+
+// ==== Элементы страницы ====
+const loginSection = document.getElementById('loginSection');
+const menuSection = document.getElementById('menu');
+const wordsSection = document.getElementById('wordsSection');
+const gameSection = document.getElementById('gameSection');
+const loginMessage = document.getElementById('loginMessage');
+
+const usernameInput = document.getElementById('usernameInput');
+const passwordInput = document.getElementById('passwordInput');
+const loginBtn = document.getElementById('loginBtn');
+
+const btnWords = document.getElementById('btnWords');
+const btnGame = document.getElementById('btnGame');
+
+const wordsList = document.getElementById('wordsList');
+const translationSpan = document.getElementById('translation');
+const playAudioBtn = document.getElementById('playAudio');
+const backFromWords = document.getElementById('backFromWords');
+
+const gameWordSpan = document.getElementById('gameWord');
+const gameOptionsDiv = document.getElementById('gameOptions');
+const scoreSpan = document.getElementById('score');
+const bestScoreSpan = document.getElementById('bestScore');
+const timerSpan = document.getElementById('timer');
+const backFromGame = document.getElementById('backFromGame');
+
+const leaderboardBody = document.getElementById('leaderboardBody');
+
+// ==== Переменные ====
+let currentUser = null;
+let currentScore = 0;
+let bestScore = 0;
+let timerId = null;
+let timeLeft = 15;
+let currentQuestion = null;
+
+// ==== Функции ====
+
+// Работа с localStorage для пользователей и рекордов
+function loadUsers() {
+  return JSON.parse(localStorage.getItem('users')) || {};
+}
+
+function saveUsers(users) {
+  localStorage.setItem('users', JSON.stringify(users));
+}
+
+function loadLeaderboard() {
+  return JSON.parse(localStorage.getItem('leaderboard')) || {};
+}
+
+function saveLeaderboard(board) {
+  localStorage.setItem('leaderboard', JSON.stringify(board));
+}
+
+// Обновить таблицу рекордов
+function updateLeaderboardUI() {
+  let leaderboard = loadLeaderboard();
+  // Преобразовать в массив и отсортировать по очкам по убыванию
+  const sorted = Object.entries(leaderboard).sort((a,b) => b[1] - a[1]);
+  leaderboardBody.innerHTML = '';
+  for (const [user, score] of sorted) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${user}</td><td>${score}</td>`;
+    leaderboardBody.appendChild(tr);
+  }
+}
+
+// Регистрация / вход
+loginBtn.onclick = () => {
+  const username = usernameInput.value.trim();
+  const password = passwordInput.value.trim();
+  if (!username || !password) {
+    loginMessage.textContent = "Введите логин и пароль";
+    return;
+  }
+  const users = loadUsers();
+  if (users[username]) {
+    // Пользователь существует, проверяем пароль
+    if (users[username].password === password) {
+      currentUser = username;
+      bestScore = users[username].bestScore || 0;
+      loginMessage.textContent = "";
+      showMenu();
+    } else {
+      loginMessage.textContent = "Неверный пароль";
+    }
+  } else {
+    // Регистрация нового пользователя
+    users[username] = { password: password, bestScore: 0 };
+    saveUsers(users);
+    currentUser = username;
+    bestScore = 0;
+    loginMessage.textContent = "Пользователь зарегистрирован. Добро пожаловать!";
+    showMenu();
+  }
+};
+
+// Показать меню
+function showMenu() {
+  loginSection.classList.add('hidden');
+  menuSection.classList.remove('hidden');
+  wordsSection.classList.add('hidden');
+  gameSection.classList.add('hidden');
+  currentScore = 0;
+  scoreSpan.textContent = "Очки: 0";
+  bestScoreSpan.textContent = "Лучший: " + bestScore;
+  updateLeaderboardUI();
+}
+
+// Показать список слов
+btnWords.onclick = () => {
+  menuSection.classList.add('hidden');
+  wordsSection.classList.remove('hidden');
+  gameSection.classList.add('hidden');
+  loginSection.classList.add('hidden');
+  showWordsList();
+  translationSpan.textContent = "";
+  playAudioBtn.style.display = 'none';
+};
+
+backFromWords.onclick = () => {
+  showMenu();
+};
+
+function showWordsList() {
+  wordsList.innerHTML = "";
+  words.forEach((w, i) => {
+    const div = document.createElement('div');
+    div.classList.add('word-item');
+    div.setAttribute('tabindex', '0');
+    div.textContent = w.arabic;
+    div.onclick = () => {
+      translationSpan.textContent = w.translation;
+      playAudioBtn.style.display = 'inline-block';
+      playAudioBtn.onclick = () => {
+        speak(w.arabic);
+      };
+    };
+    div.onkeydown = (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        div.click();
+      }
+    };
+    wordsList.appendChild(div);
+  });
+}
+
+// Озвучка (браузерная)
+function speak(text) {
+  if (!window.speechSynthesis) return;
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'ar-SA';
+  speechSynthesis.speak(utterance);
+}
+
+// Игра
+btnGame.onclick = () => {
+  menuSection.classList.add('hidden');
+  wordsSection.classList.add('hidden');
+  gameSection.classList.remove('hidden');
+  loginSection.classList.add('hidden');
+  startGame();
+};
+
+backFromGame.onclick = () => {
+  stopGame();
+  showMenu();
+};
+
+function startGame() {
+  currentScore = 0;
+  scoreSpan.textContent = "Очки: 0";
+  bestScoreSpan.textContent = "Лучший: " + bestScore;
+  timeLeft = 15;
+  timerSpan.textContent = timeLeft;
+  nextQuestion();
+  startTimer();
+}
+
+function stopGame() {
+  clearInterval(timerId);
+}
+
+function startTimer() {
+  clearInterval(timerId);
+  timeLeft = 15;
+  timerSpan.textContent = timeLeft;
+  timerId = setInterval(() => {
+    timeLeft--;
+    timerSpan.textContent = timeLeft;
+    if (timeLeft <= 0) {
+      clearInterval(timerId);
+      alert("Время вышло! Игра окончена.");
+      endGame();
+    }
+  }, 1000);
+}
+
+function nextQuestion() {
+  if (words.length < 4) {
+    alert("Недостаточно слов для игры.");
+    endGame();
+    return;
+  }
+  // Выбираем случайное слово для вопроса
+  currentQuestion = words[Math.floor(Math.random() * words.length)];
+  gameWordSpan.textContent = currentQuestion.arabic;
+
+  // Выбираем 3 случайных неправильных вариантов
+  let options = [currentQuestion];
+  while (options.length < 4) {
+    const candidate = words[Math.floor(Math.random() * words.length)];
+    if (!options.includes(candidate)) options.push(candidate);
+  }
+  // Перемешиваем варианты
+  options.sort(() => Math.random() - 0.5);
+
+  gameOptionsDiv.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = opt.translation;
+    btn.onclick = () => {
+      if (opt === currentQuestion) {
+        // Правильный ответ
+        currentScore++;
+        scoreSpan.textContent = "Очки: " + currentScore;
+        timeLeft = 15; // Сброс таймера
+        timerSpan.textContent = timeLeft;
+        nextQuestion();
+      } else {
+        // Неправильный ответ - звук и конец игры
+        playWrongSound();
+        alert("Неправильно! Игра окончена.");
+        endGame();
+      }
+    };
+    gameOptionsDiv.appendChild(btn);
+  });
+}
+
+// Звук неправильного ответа
+function playWrongSound() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = "sawtooth";
+  o.frequency.value = 200;
+  o.connect(g);
+  g.connect(ctx.destination);
+  o.start();
+  g.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
+  setTimeout(() => { o.stop(); ctx.close(); }, 500);
+}
+
+// Конец игры
+function endGame() {
+  clearInterval(timerId);
+  // Сохраняем рекорд если нужно
+  if (currentScore > bestScore) {
+    bestScore = currentScore;
+    const users = loadUsers();
+    if (users[currentUser]) {
+      users[currentUser].bestScore = bestScore;
+      saveUsers(users);
+    }
+  }
+  // Обновляем таблицу рекордов
+  const leaderboard = loadLeaderboard();
+  if (!leaderboard[currentUser] || leaderboard[currentUser] < currentScore) {
+    leaderboard[currentUser] = currentScore;
+    saveLeaderboard(leaderboard);
+  }
+  updateLeaderboardUI();
+  alert("Игра окончена. Ваш счет: " + currentScore);
+  showMenu();
+}
+
+// При загрузке
+window.onload = () => {
+  // При загрузке пытаемся загрузить последнего пользователя из localStorage (необязательно)
+  // Для простоты просим войти каждый раз
+};
+</script>
+
+</body>
+</html>
