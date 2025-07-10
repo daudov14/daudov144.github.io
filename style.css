@@ -1,0 +1,124 @@
+body {
+  background: #0a1a27;
+  color: #0ff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0; padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+main {
+  background: #123647;
+  border-radius: 16px;
+  padding: 20px;
+  width: 350px;
+  box-shadow: 0 0 12px #0ff;
+  position: relative;
+}
+
+h1, h2 {
+  margin: 0 0 20px 0;
+  text-align: center;
+}
+
+.main-btn {
+  width: 100%;
+  padding: 15px;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  background: #0ff;
+  color: #0a1a27;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.main-btn:hover {
+  background: #0cc;
+}
+
+.btn-records {
+  margin-top: 10px;
+  width: 100%;
+  font-size: 1rem;
+  background: transparent;
+  border: 2px solid #0ff;
+  color: #0ff;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 12px;
+}
+
+#score, #bestScore {
+  font-weight: 700;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+#answers {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.answer-btn {
+  padding: 10px;
+  background: #0cc;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #0a1a27;
+  transition: background 0.2s ease;
+}
+
+.answer-btn:hover {
+  background: #0ff;
+}
+
+.hidden {
+  display: none;
+}
+
+.visible {
+  display: block;
+}
+
+button {
+  outline: none;
+}
+
+#question {
+  font-size: 1.3rem;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+#btnBackToMenu, #btnBackFromWords, #backFromRecords {
+  margin-top: 15px;
+  background: #0aa;
+  color: #0ff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 0;
+  width: 100%;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+#btnBackToMenu:hover, #btnBackFromWords:hover, #backFromRecords:hover {
+  background: #088;
+}
+
+#allWordsList, #recordsList {
+  max-height: 250px;
+  overflow-y: auto;
+  background: #035;
+  padding: 10px;
+  border-radius: 12px;
+  font-size: 1rem;
+}
