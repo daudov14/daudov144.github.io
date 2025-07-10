@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>اللغة العربية</title>
+<style>
+body {
+  margin: 0;
+  padding: 1rem;
+  font-family: sans-serif;
+  background: #101010 url("IMG_0858.jpeg") no-repeat center center fixed;
+  background-size: cover;
+  color: #eee;
+  direction: rtl;
+}
+h1 {
+  text-align: center;
+}
+input, button, select {
+  width: 100%;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 5px;
+}
+button {
+  background: #333;
+  color: white;
+}
+button:hover {
+  background: #555;
+}
+.word-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #333;
+  padding: 0.5rem;
+  margin: 1rem 0;
+}
+.word-item {
+  padding: 0.3rem;
+}
+.word-item:hover {
+  background: #333;
+  cursor: pointer;
+}
+.word-item.selected {
+  background: #555;
+}
+#translation {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 1.2rem;
+}
+.game {
+  margin-top: 2rem;
+  border-top: 1px solid #333;
+  padding-top: 1rem;
+}
+.options button {
+  margin: 0.2rem;
+  width: 48%;
+}
+button:disabled {
+  opacity: 0.5;
+}
+</style>
+</head>
+<body>
+
+<h1>اللغة العربية</h1>
+
+<input type="text" id="search" placeholder="🔍 Поиск слова...">
+<div style="display:flex;gap:0.5rem;">
+<select id="categorySelect">
+  <option value="">Все категории</option>
+</select>
+<button id="resetFilter" aria-label="Сбросить фильтр">🔄 Сбросить</button>
+</div>
+
+<div class="word-list" id="wordList"></div>
+<div id="translation" aria-live="polite"></div>
+<button id="playAudio" style="display:none;">🔊 Прослушать</button>
+
+<div class="game">
+  <h2>🎮 Игра: угадай слово</h2>
+  <label for="level">Уровень:</label>
+  <select id="level">
+    <option value="10">Лёгкий (10 слов)</option>
+    <option value="50">Средний (50 слов)</option>
+    <option value="all">Сложный (все слова)</option>
+  </select>
+  <div>Категория:
+    <select id="gameCategory">
+      <option value="">Все</option>
+    </select>
+  </div>
+  <div id="score">Очки: 0</div>
+  <div id="timer">⏳ 15</div>
+  <div id="question"></div>
+  <div class="options" id="options"></div>
+  <div id="result" aria-live="polite"></div>
+  <button id="next">➡️ Следующее</button>
+</div>
+
+<script>
+// 📝 данные слов
+const words = [
+  { arabic: "كتاب", translation: "книга", category: "Учёба" },
+  { arabic: "مدرسة", translation: "школа", category: "Учёба" },
+  { arabic: "جامعة", translation: "университет", category: "Учёба" },
+  { arabic: "ماء", translation: "вода", category: "Еда" },
+  { arabic: "تفاحة", translation: "яблоко", category: "Еда" },
+  { arabic: "بيت", translation: "дом", category: "Дом" },
+  { arabic: "كرسي", translation: "стул", category: "Мебель" },
+  { arabic: "قطة", translation: "кошка", category: "Животные" },
+  { arabic: "سيارة", translation: "машина", category: "Транспорт" },
+  { arabic: "شمس", translation: "солнце", category: "Природа" },
+  { arabic: "الأحد", translation: "воскресенье", category: "Время" },
+  { arabic: "أبيض", translation: "белый", category: "Цвета" },
+  { arabic: "واحد", translation: "один", category: "Числа" },
+  { arabic: "أنا", translation: "я", category: "Общее" },
+  { arabic: "أب", translation: "отец", category: "Семья" }
+];
+
+// 🔍 поиск и фильтр
+const wordListEl = document.getElementById('wordList');
+const translationEl = document.getElementById('translation');
+const categorySelect = document.getElementById('categorySelect');
+const resetFilter = document.getElementById('resetFilter');
+const searchInput = document.getElementById('search');
+const playAudioBtn = document.getElementById('playAudio');
+
+let filteredWords = words;
+let selectedWord = null;
+
+// 🎲 игра
+const levelEl = document.getElementById('level');
+const gameCategoryEl = document.getElementById('gameCategory');
+const scoreEl = document.getElementById('score');
+const timerEl = document.getElementById('timer');
+const questionEl = document.getElementById('question');
+const optionsEl = document.getElementById('options');
+const resultEl = document.getElementById('result');
+const nextBtn = document.getElementById('next');
+
+let gameWords = [];
+let currentQuestion = null;
+let score = 0;
+let timer = null;
+
+function renderWords() {
+  wordListEl.innerHTML = '';
+  filteredWords.forEach(w => {
+    const div = document.createElement('div');
+    div.className = 'word-item';
+    div.textContent = w.arabic;
+    div.onclick = () => {
+      selectedWord = w;
+      document.querySelectorAll('.word-item').forEach(i => i.classList.remove('selected'));
+      div.classList.add('selected');
+      translationEl.textContent = w.translation;
+      playAudioBtn.style.display = 'inline-block';
+    };
+    wordListEl.appendChild(div);
+  });
+}
+
+function updateCategories() {
+  const cats = Array.from(new Set(words.map(w => w.category)));
+  cats.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = c;
+    categorySelect.appendChild(opt);
+
+    const opt2 = opt.cloneNode(true);
+    gameCategoryEl.appendChild(opt2);
+  });
+}
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim();
+  filteredWords = words.filter(w => w.arabic.includes(q) || w.translation.includes(q));
+  renderWords();
+});
+
+categorySelect.addEventListener('change', () => {
+  const cat = categorySelect.value;
+  filteredWords = cat ? words.filter(w => w.category === cat) : words;
+  renderWords();
+});
+
+resetFilter.onclick = () => {
+  searchInput.value = '';
+  categorySelect.value = '';
+  filteredWords = words;
+  renderWords();
+  translationEl.textContent = '';
+  playAudioBtn.style.display = 'none';
+};
+
+playAudioBtn.onclick = () => {
+  if (selectedWord) {
+    const utterance = new SpeechSynthesisUtterance(selectedWord.arabic);
+    utterance.lang = 'ar-SA';
+    speechSynthesis.speak(utterance);
+  }
+};
+
+// 🎮 Игра
+function nextQuestion() {
+  clearInterval(timer);
+  timerEl.textContent = '⏳ 15';
+  resultEl.textContent = '';
+  optionsEl.innerHTML = '';
+  if (!gameWords.length) {
+    questionEl.textContent = '🎉 Игра окончена!';
+    return;
+  }
+  currentQuestion = gameWords.pop();
+  questionEl.textContent = currentQuestion.translation;
+
+  const options = [currentQuestion, ...words.filter(w => w !== currentQuestion).sort(() => 0.5 - Math.random()).slice(0, 3)];
+  options.sort(() => 0.5 - Math.random());
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.textContent = opt.arabic;
+    btn.onclick = () => {
+      if (opt === currentQuestion) {
+        resultEl.textContent = '✅ Правильно!';
+        score++;
+      } else {
+        resultEl.textContent = `❌ Неправильно. ${currentQuestion.arabic}`;
+      }
+      scoreEl.textContent = `Очки: ${score}`;
+      clearInterval(timer);
+    };
+    optionsEl.appendChild(btn);
+  });
+
+  let timeLeft = 15;
+  timer = setInterval(() => {
+    timeLeft--;
+    timerEl.textContent = `⏳ ${timeLeft}`;
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      resultEl.textContent = `⌛ Время вышло. ${currentQuestion.arabic}`;
+    }
+  }, 1000);
+}
+
+nextBtn.onclick = nextQuestion;
+
+levelEl.onchange = startGame;
+gameCategoryEl.onchange = startGame;
+
+function startGame() {
+  score = 0;
+  scoreEl.textContent = 'Очки: 0';
+  resultEl.textContent = '';
+  const level = levelEl.value;
+  const cat = gameCategoryEl.value;
+
+  gameWords = words.filter(w => !cat || w.category === cat).sort(() => 0.5 - Math.random());
+  if (level !== 'all') {
+    gameWords = gameWords.slice(0, +level);
+  }
+  nextQuestion();
+}
+
+updateCategories();
+renderWords();
+startGame();
+</script>
+
+</body>
+</html>
