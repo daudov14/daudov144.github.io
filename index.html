@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Арабско-Русская Игра</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <div id="menu" class="visible">
+    <h1>Арабско-Русская Игра</h1>
+    <button id="btnPlay" class="main-btn">Играть</button>
+    <button id="btnAllWords" class="main-btn">Все слова</button>
+    <div id="bestScore"></div>
+    <button id="recordsBtn">🏆 Рекордсмены</button>
+  </div>
+
+  <section id="gameSection" class="hidden">
+    <div id="score">Очки: 0</div>
+    <div id="question">Здесь вопрос</div>
+    <div id="answers"></div>
+    <button id="btnBack">Назад</button>
+  </section>
+
+  <section id="wordsSection" class="hidden">
+    <h2>Все слова</h2>
+    <div id="allWordsList"></div>
+    <button id="btnBack">Назад</button>
+  </section>
+
+  <section id="recordsSection" class="hidden">
+    <h2>Рекордсмены</h2>
+    <div id="recordsList"></div>
+    <button id="btnBack">Назад</button>
+  </section>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
