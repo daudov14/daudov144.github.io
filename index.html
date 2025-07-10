@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Арабско-Русская Игра</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<main>
+  <div id="menu" class="visible">
+    <h1>Арабско-Русская Игра</h1>
+    <button id="btnPlay" class="main-btn">Играть</button>
+    <button id="btnAllWords" class="main-btn">Все слова</button>
+    <div id="bestScore" class="best-score"></div>
+  </div>
+
+  <section id="gameSection" class="hidden">
+    <div id="score">Очки: 0</div>
+    <div id="question">Здесь вопрос</div>
+    <div id="answers"></div>
+    <button id="btnBackToMenu">Назад</button>
+  </section>
+
+  <section id="wordsSection" class="hidden">
+    <h2>Все слова</h2>
+    <div id="allWordsList"></div>
+    <button id="btnBackFromWords">Назад</button>
+  </section>
+
+  <section id="recordsSection" class="hidden">
+    <h2>Рекордсмены</h2>
+    <div id="recordsList"></div>
+    <button id="backFromRecords">Назад</button>
+  </section>
+</main>
+
+<!-- Кнопка Рекордсмены внизу -->
+<div id="bottomRecords" style="position:fixed;bottom:10px;left:50%;transform:translateX(-50%);">
+  <button id="btnRecordsBottom" title="Рекордсмены 🏆" aria-label="Рекордсмены" style="
+    font-size: 1.8rem;
+    background: transparent;
+    border: none;
+    color: #0ff;
+    cursor: pointer;
+  ">🏆</button>
+</div>
+
+<!-- Модалка авторизации -->
+<div id="modalOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;">
+  <div id="authModal" style="background:#203a43;padding:20px;border-radius:12px;width:320px;color:#0ff;">
+    <h2 style="text-align:center;margin-bottom:1rem;">Вход / Регистрация</h2>
+    <label for="usernameInput">Имя пользователя</label>
+    <input id="usernameInput" type="text" style="width:100%;padding:8px;border-radius:6px;border:none;margin-bottom:0.8rem;" autocomplete="username" />
+    <label for="passwordInput">Пароль</label>
+    <input id="passwordInput" type="password" style="width:100%;padding:8px;border-radius:6px;border:none;margin-bottom:1rem;" autocomplete="current-password" />
+    <button id="authSubmitBtn" style="width:100%;padding:10px;font-weight:700;background:#0ff;color:#111;border:none;border-radius:10px;cursor:pointer;">Войти / Зарегистрироваться</button>
+    <div id="authError" style="color:#f55;margin-top:0.5rem;min-height:1.2em;text-align:center;font-weight:700;"></div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
