@@ -122,3 +122,6 @@ button {
   border-radius: 12px;
   font-size: 1rem;
 }
+button, .answer-btn {
+  user-select: none;
+}
