@@ -122,3 +122,45 @@ button {
   border-radius: 12px;
   font-size: 1rem;
 }
+/* мобильная адаптация */
+@media (max-width: 480px) {
+  main {
+    width: 95%;
+    max-width: 360px;
+    padding: 15px;
+  }
+
+  h1, h2 {
+    font-size: 1.3rem;
+  }
+
+  .main-btn {
+    font-size: 1rem;
+    padding: 12px;
+  }
+
+  #question {
+    font-size: 1.1rem;
+  }
+
+  .answer-btn {
+    font-size: 0.95rem;
+    padding: 8px;
+  }
+
+  #allWordsList, #recordsList {
+    font-size: 0.9rem;
+  }
+}
+
+/* фиксированное меню и секции по высоте экрана */
+body, html {
+  height: 100%;
+  overflow: hidden;
+}
+
+main {
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
