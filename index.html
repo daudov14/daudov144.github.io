@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Игра: Арабские слова</title>
+<style>
+body {
+  font-family: sans-serif;
+  background: linear-gradient(135deg, #222, #111);
+  color: #fff;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+main {
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+}
+h1 {
+  font-size: 2rem;
+  margin: 0.5em 0;
+}
+button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  margin: 10px;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  background: #0077cc;
+  color: white;
+}
+button:hover {
+  background: #005fa3;
+}
+#word {
+  font-size: 2rem;
+  margin: 1em 0;
+}
+#options button {
+  display: block;
+  width: 100%;
+  margin: 5px 0;
+  background: #333;
+}
+#options button:hover {
+  background: #444;
+}
+#timer {
+  font-size: 1.2rem;
+  margin: 1em 0;
+}
+#result {
+  font-size: 1.5rem;
+  margin-top: 1em;
+  color: #0f0;
+}
+#record {
+  font-size: 1.2rem;
+  margin-top: 1em;
+  color: #ff0;
+}
+#login {
+  margin-top: 2em;
+}
+input {
+  padding: 5px;
+  font-size: 1rem;
+}
+</style>
+</head>
+<body>
+
+<main>
+  <h1>🎮 Игра: Арабские слова</h1>
+
+  <div id="login">
+    <p>Введите ваше имя:</p>
+    <input type="text" id="playerName" placeholder="Ваше имя">
+    <button onclick="register()">Начать игру</button>
+  </div>
+
+  <div id="game" style="display:none;">
+    <div id="timer">⏳ Время: <span id="time">30</span> сек</div>
+    <div id="word">Слово</div>
+    <div id="options"></div>
+    <div id="result"></div>
+    <div id="record"></div>
+    <button id="restartBtn" style="display:none;" onclick="startGame()">🔄 Играть снова</button>
+  </div>
+</main>
+
+<audio id="wrongSound" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA="></audio>
+
+<script>
+const words = [
+  {ar: "كتاب", ru: "Книга"},
+  {ar: "مدرسة", ru: "Школа"},
+  {ar: "قلم", ru: "Ручка"},
+  {ar: "تفاحة", ru: "Яблоко"},
+  {ar: "ماء", ru: "Вода"},
+  {ar: "سيارة", ru: "Машина"},
+  {ar: "طائرة", ru: "Самолёт"},
+  {ar: "خبز", ru: "Хлеб"},
+  {ar: "شاي", ru: "Чай"},
+  {ar: "شمس", ru: "Солнце"}
+];
+
+let gameWords = [];
+let current = 0;
+let timer = 30;
+let interval;
+let player = "";
+
+const loginDiv = document.getElementById("login");
+const gameDiv = document.getElementById("game");
+const wordDiv = document.getElementById("word");
+const optionsDiv = document.getElementById("options");
+const timeSpan = document.getElementById("time");
+const resultDiv = document.getElementById("result");
+const recordDiv = document.getElementById("record");
+const wrongSound = document.getElementById("wrongSound");
+const restartBtn = document.getElementById("restartBtn");
+
+function shuffle(arr) {
+  return arr.sort(() => Math.random() - 0.5);
+}
+
+function getRecord() {
+  return parseInt(localStorage.getItem(`bestScore_${player}`) || "0", 10);
+}
+
+function setRecord(score) {
+  localStorage.setItem(`bestScore_${player}`, score);
+}
+
+function updateRecordDisplay() {
+  recordDiv.textContent = `🏆 Рекорд ${player}: ${getRecord()}`;
+}
+
+function register() {
+  const input = document.getElementById("playerName");
+  if (!input.value.trim()) {
+    alert("Введите имя!");
+    return;
+  }
+  player = input.value.trim();
+  loginDiv.style.display = "none";
+  gameDiv.style.display = "block";
+  startGame();
+}
+
+function startGame() {
+  gameWords = shuffle(words.slice());
+  current = 0;
+  timer = 30;
+  timeSpan.textContent = timer;
+  resultDiv.textContent = "";
+  restartBtn.style.display = "none";
+  updateRecordDisplay();
+
+  interval = setInterval(() => {
+    timer--;
+    timeSpan.textContent = timer;
+    if (timer <= 0) {
+      endGame(false, "⏳ Время вышло!");
+    }
+  }, 1000);
+
+  nextWord();
+}
+
+function nextWord() {
+  if (current >= gameWords.length) {
+    endGame(true, "🎉 Победа!");
+    return;
+  }
+
+  const isArabic = Math.random() < 0.5;
+  const wordObj = gameWords[current];
+  const correct = isArabic ? wordObj.ru : wordObj.ar;
+  const question = isArabic ? wordObj.ar : wordObj.ru;
+
+  wordDiv.textContent = question;
+
+  // Озвучка слова
+  const utterance = new SpeechSynthesisUtterance(question);
+  utterance.lang = isArabic ? "ar-SA" : "ru-RU";
+  speechSynthesis.speak(utterance);
+
+  const opts = [correct];
+  while (opts.length < 4) {
+    const rand = words[Math.floor(Math.random() * words.length)];
+    const option = isArabic ? rand.ru : rand.ar;
+    if (!opts.includes(option)) opts.push(option);
+  }
+
+  shuffle(opts);
+  optionsDiv.innerHTML = "";
+  opts.forEach(opt => {
+    const btn = document.createElement("button");
+    btn.textContent = opt;
+    btn.onclick = () => {
+      if (opt === correct) {
+        current++;
+        nextWord();
+      } else {
+        wrongSound.play();
+        endGame(false, "❌ Неправильно!");
+      }
+    };
+    optionsDiv.appendChild(btn);
+  });
+}
+
+function endGame(won, message) {
+  clearInterval(interval);
+  resultDiv.textContent = `${message} 🎯 Угадано: ${current}`;
+
+  if (current > getRecord()) {
+    setRecord(current);
+    resultDiv.textContent += " 🥇 Новый рекорд!";
+  }
+
+  updateRecordDisplay();
+  optionsDiv.innerHTML = "";
+  wordDiv.textContent = "";
+  restartBtn.style.display = "inline-block";
+}
+</script>
+
+</body>
+</html>
