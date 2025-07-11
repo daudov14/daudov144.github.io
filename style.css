@@ -1,0 +1,83 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+}
+
+main {
+  display: none;
+  text-align: center;
+  padding: 20px;
+}
+
+main.visible {
+  display: block;
+}
+
+#modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+#authModal {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 300px;
+  text-align: center;
+}
+
+#authModal input {
+  width: 90%;
+  margin: 5px 0;
+  padding: 8px;
+}
+
+#authModal button {
+  margin-top: 10px;
+  padding: 8px 16px;
+}
+
+.main-btn {
+  display: block;
+  margin: 10px auto;
+  padding: 10px 20px;
+  font-size: 16px;
+}
+
+.btn-records {
+  display: inline-block;
+  margin: 10px auto;
+  padding: 10px;
+  font-size: 16px;
+}
+
+.answer-btn {
+  display: inline-block;
+  margin: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.answer-btn:hover {
+  background: #2980b9;
+}
+
+/* Убираем рамку при фокусе */
+.answer-btn:focus {
+  outline: none;
+}
